@@ -3,10 +3,14 @@ package com.jfb.lecture5;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jfb.lecture5.exceptions.IllegalPriceException;
 import com.jfb.lecture5.exceptions.IllegalStartDateException;
 import com.jfb.lecture5.exceptions.IllegalTicketTypeException;
 import com.jfb.lecture5.model.BusTicket;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Scanner;
 
 import static com.jfb.lecture5.exceptions.IllegalPriceException.price;
@@ -18,22 +22,28 @@ public class Main {
   public static int parseError = 0;
   public static int valid = 0;
 
-  public static void main(String[] args) throws JsonProcessingException {
-    int x = 0;
-
-    do {
-      String input = getInput();
-      BusTicket busTicket;
-      try {
-        busTicket = new BusTicket(getBusTicket(input));
-        System.out.println(busTicket);
-        valid++;
-      }catch (IllegalTicketTypeException | IllegalStartDateException e){
-        System.err.println(e.getMessage());
-      }
-      x++;
-    } while (x < 17);
+  public static void main(String[] args) {
+    getTicketsFromFile("src/main/resources/ticketData.txt");
     totalScore();
+    totalScoreWithParseError();
+  }
+
+  private static void getTicketsFromFile(String fileName) {
+    try(BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+      String input;
+      BusTicket busTicket;
+      while((input=br.readLine())!=null){
+        try {
+          busTicket = new BusTicket(getBusTicket(input));
+          System.out.println(busTicket);
+          valid++;
+        } catch (IllegalTicketTypeException | IllegalStartDateException | IllegalPriceException e) {
+          System.err.println(e.getMessage());
+        }
+      }
+    } catch (IOException e) {
+      System.err.println("File not found!");
+    }
   }
 
   private static BusTicket getBusTicket(String input) throws JsonProcessingException {
@@ -52,7 +62,7 @@ public class Main {
     return new Scanner(System.in).nextLine();
   }
 
-  private static void totalScore(){
+  private static void totalScoreWithParseError() {
     System.out.println(
             "Total = " + (parseError+ticketType+startDate+price) +
             "\nValid = " + valid +
@@ -60,7 +70,22 @@ public class Main {
     );
   }
 
-  private static int max(int a, int b, int c, int d){
-    return Math.max(a,Math.max(Math.max(b,c),d));
+  private static String max(Integer parseError, Integer ticketType, Integer startDate, Integer price){
+    return (Math.max(parseError,Math.max(price,Math.max(ticketType,startDate)))==parseError)? "parse error" :
+            ((Math.max(price,Math.max(ticketType,startDate))==price) ? "price" :
+                    ((Math.max(ticketType,startDate)==ticketType)? "ticket type" : "start date"));
+  }
+
+  private static void totalScore(){
+    System.out.println(
+            "Total = " + (ticketType+startDate+price) +
+                    "\nValid = " + valid +
+                    "\nMost popular violation = " + max(ticketType,startDate,price)
+    );
+  }
+
+  private static String max(Integer ticketType, Integer startDate, Integer price){
+    return (Math.max(price,Math.max(ticketType,startDate))==price) ? "price" :
+                    ((Math.max(ticketType,startDate)==ticketType)? "ticket type" : "start date");
   }
 }
