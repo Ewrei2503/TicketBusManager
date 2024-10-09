@@ -51,7 +51,6 @@ public class Main {
       return new ObjectMapper().readValue(input, BusTicket.class);
     }
     catch (JsonParseException e) {
-      System.err.println("Parsing error");
       input = input.replace('“','\"');
       parseError++;
       return getBusTicket(input);
