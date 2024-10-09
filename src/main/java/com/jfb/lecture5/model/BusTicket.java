@@ -24,37 +24,53 @@ public class BusTicket {
 
     private String price;
 
+    BusTicket(){}
 
-    public BusTicket() {}
-
-    public BusTicket(BusTicket busTicket) throws IllegalStartDateException, IllegalTicketTypeException, IllegalPriceException {
-        this.ticketClass = busTicket.getTicketClass();
-        this.ticketType = validateTicketType(busTicket.ticketType, busTicket.getStartDate());
-        this.startDate = validateStartDate(busTicket.getStartDate());
-        this.price = validatePrice(busTicket.getPrice());
+    public static void validateBusTicket(BusTicket busTicket){
+        validateTicketType(busTicket.getTicketType(), busTicket.getStartDate());
+        validateStartDate(busTicket.getStartDate());
+        validatePrice(busTicket.getPrice());
     }
 
-    private static String validateTicketType(String ticketType, String startDate) throws IllegalTicketTypeException, IllegalStartDateException {
-        if(ticketType==null){
-            throw new IllegalTicketTypeException("Ticket type cannot be null");
-        } else if(Arrays.stream(TicketType.values()).noneMatch(t -> t.name().equals(ticketType))){
+    private static void validateTicketType(String ticketType, String startDate){
+        try {
+	        if(ticketType == null || Arrays.stream(TicketType.values()).noneMatch(t -> t.name().equals(ticketType))) {
+                validateStartDateByNotValidTicketType(ticketType, startDate);
+            }else if(ticketType.equals(TicketType.MONTH.name()) && !(startDate == null || startDate.isEmpty())) {
+                throw new IllegalStartDateException("The start date must be empty for this ticket type: " + ticketType);
+            }else if(!ticketType.equals(TicketType.MONTH.name()) && (startDate == null || startDate.isEmpty())) {
+		        throw new IllegalStartDateException("The start date cannot be empty for this ticket type: " + ticketType);
+	        }
+        } catch(IllegalTicketTypeException | IllegalStartDateException e) {
+	        System.err.println(e.getMessage() + ((e.getCause()==null)?"": "\n" + e.getCause().getMessage()));
+        }
+    }
+
+    private static void validateStartDateByNotValidTicketType(String ticketType, String startDate) throws IllegalTicketTypeException {
+        if(startDate == null || startDate.isEmpty()) {
             throw new IllegalTicketTypeException("Ticket type is not valid: " + ticketType);
-        } else if(!ticketType.equals(TicketType.MONTH.name()) && (startDate == null || startDate.isEmpty())){
-            throw new IllegalStartDateException("The start date cannot be empty for this ticket type: " + ticketType);
-        } else return ticketType;
+        } else throw new IllegalTicketTypeException("Ticket type is not valid: " + ticketType,new IllegalStartDateException("Start date must be null or empty for this type: " + ticketType));
     }
 
-    private static String validatePrice(String price) throws IllegalPriceException {
-        if(price==null || BigDecimal.ZERO.compareTo(new BigDecimal(price)) == 0){
-            throw new IllegalPriceException("The price can't be zero or null");
-        } else if(new BigDecimal(price).remainder(BigDecimal.TWO).equals(BigDecimal.ONE)){
-            throw new IllegalPriceException("The price can't be odd");
-        } else return price;
+    private static void validatePrice(String price){
+	    try {
+	        if(price==null || BigDecimal.ZERO.compareTo(new BigDecimal(price)) == 0){
+	            throw new IllegalPriceException("The price can't be zero or null");
+	        } else if(new BigDecimal(price).remainder(BigDecimal.valueOf(2L)).equals(BigDecimal.ONE)){
+	            throw new IllegalPriceException("The price can't be odd");
+	        }
+	    } catch(IllegalPriceException e) {
+			System.err.println(e.getMessage());
+		}
     }
 
-    private static String validateStartDate(String startDate) throws IllegalStartDateException {
-        if(LocalDate.parse(startDate).isAfter(LocalDate.now())){
-            throw new IllegalStartDateException("The start date can't be in the future");
-        } else return startDate;
+    private static void validateStartDate(String startDate) throws IllegalStartDateException {
+	    try {
+			if(startDate!=null && !startDate.isEmpty() && LocalDate.parse(startDate).isAfter(LocalDate.now())){
+	            throw new IllegalStartDateException("The start date can't be in the future");
+	        }
+	    } catch(IllegalStartDateException e) {
+		    System.err.println(e.getMessage());
+	    }
     }
 }
