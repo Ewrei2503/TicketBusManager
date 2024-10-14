@@ -8,14 +8,14 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
-import static com.jfb.lecture5.exceptions.IllegalPriceException.price;
-import static com.jfb.lecture5.exceptions.IllegalStartDateException.startDate;
-import static com.jfb.lecture5.exceptions.IllegalTicketTypeException.ticketType;
+import static com.jfb.lecture5.exceptions.IllegalPriceException.countOfIllegalPrice;
+import static com.jfb.lecture5.exceptions.IllegalStartDateException.countOfIllegalStartDate;
+import static com.jfb.lecture5.exceptions.IllegalTicketTypeException.countOfIllegalTicketType;
 
 public class Main {
 
-    public static int valid = 0;
-    public static boolean validity = true;
+    public static int countOfValidTickets = 0;
+    public static boolean isValid = true;
 
     public static void main(String[] args) {
         getTicketsFromFile();
@@ -26,10 +26,10 @@ public class Main {
         try(BufferedReader br = new BufferedReader(new FileReader("src/main/resources/ticketData.txt"))) {
             String input;
             while((input=br.readLine())!=null){
-                validity = true;
+                isValid = true;
                 getBusTicket(input);
-                if(validity){
-                    valid++;
+                if(isValid){
+                    countOfValidTickets++;
                 }
             }
         } catch (IOException e) {
@@ -49,12 +49,12 @@ public class Main {
 
     private static void totalScore(){
         System.out.println(
-                "Ticket type: " + ticketType +
-                "\nStart date: " + startDate +
-                "\nPrice: " + price +
-                "\nTotal = " + (ticketType+startDate+price) +
-                "\nValid = " + valid +
-                "\nMost popular violation = " + max(ticketType,startDate,price));
+                "Ticket type: " + countOfIllegalTicketType +
+                "\nStart date: " + countOfIllegalStartDate +
+                "\nPrice: " + countOfIllegalPrice +
+                "\nTotal = " + (countOfIllegalTicketType+countOfIllegalStartDate+countOfIllegalPrice) +
+                "\nValid = " + countOfValidTickets +
+                "\nMost popular violation = " + max(countOfIllegalTicketType,countOfIllegalStartDate,countOfIllegalPrice));
     }
 
     private static String max(Integer ticketType, Integer startDate, Integer price){
